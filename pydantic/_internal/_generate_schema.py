@@ -363,7 +363,7 @@ class GenerateSchema:
         if schema['type'] == 'definition-ref' and ref_mode == 'unpack':
             return self.defs.definitions[schema['schema_ref']]
         elif 'ref' in schema and ref_mode == 'to-def':
-            return core_schema.definition_reference_schema(schema['ref'])
+            return core_schema.definition_reference_schema(schema['ref'])  # type: ignore
 
         return schema
 
