@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from functools import partialmethod
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, overload
+from typing import TYPE_CHECKING, Any, Callable, Union, overload
 
 from pydantic_core import core_schema
 from pydantic_core import core_schema as _core_schema
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal, TypeAlias, TypeVar
 
 from ._internal import _annotated_handlers, _decorators, _internal_dataclass
 

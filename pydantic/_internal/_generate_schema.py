@@ -34,6 +34,7 @@ from ._core_metadata import (
 from ._core_utils import (
     CoreSchemaOrField,
     define_expected_missing_refs,
+    flatten_schema_defs,
     get_type_ref,
     is_list_like_schema_with_items_schema,
     remove_unnecessary_invalid_definitions,
@@ -319,6 +320,17 @@ class GenerateSchema:
             )
         return None
 
+    def _unpack_refs_defs(self, schema: CoreSchema) -> CoreSchema:
+        def get_ref(s: CoreSchema) -> str:
+            return s['ref']  # type: ignore
+
+        schema = flatten_schema_defs(schema)
+
+        if schema['type'] == 'definitions':
+            self.defs.definitions.update({get_ref(s): s for s in schema['definitions']})
+            schema = schema['schema']
+        return schema
+
     def _generate_schema_from_property(self, obj: Any, source: Any) -> core_schema.CoreSchema | None:
         """Try to generate schema from either the `__get_pydantic_core_schema__` function or
         `__pydantic_core_schema__` property.
@@ -339,14 +351,20 @@ class GenerateSchema:
         if get_schema is None:
             return None
 
+        schema: CoreSchema
+
         if len(inspect.signature(get_schema).parameters) == 1:
             # (source) -> CoreSchema
-            return get_schema(source)
+            schema = get_schema(source)
+        else:
+            schema = get_schema(source, CallbackGetCoreSchemaHandler(self._generate_schema, self, ref_mode=ref_mode))
 
-        schema = get_schema(source, CallbackGetCoreSchemaHandler(self._generate_schema, self, ref_mode=ref_mode))
-        if 'ref' in schema:
-            self.defs.definitions[schema['ref']] = schema
+        schema = self._unpack_refs_defs(schema)
+        if schema['type'] == 'definition-ref' and ref_mode == 'unpack':
+            return self.defs.definitions[schema['schema_ref']]
+        elif 'ref' in schema and ref_mode == 'to-def':
             return core_schema.definition_reference_schema(schema['ref'])
+
         return schema
 
     def _generate_schema(self, obj: Any) -> core_schema.CoreSchema:  # noqa: C901
