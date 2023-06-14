@@ -2444,3 +2444,14 @@ def test_get_core_schema_return_new_ref() -> None:
     assert 'inner was here' in str(cs)
 
     assert OuterModel(inner=InnerModel()).x == 2
+
+
+def test_extra_validator():
+    class Model(BaseModel):
+        model_config = ConfigDict(extra='allow')
+
+    class Child(Model):
+        __pydantic_extra__: Dict[str, int]
+
+    m = Child(a='1')
+    assert m.__pydantic_extra__ == {'a': 1}

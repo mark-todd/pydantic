@@ -5,7 +5,7 @@ import types
 import typing
 import warnings
 from copy import copy, deepcopy
-from typing import Any
+from typing import Any, Dict
 
 import pydantic_core
 import typing_extensions
@@ -121,6 +121,7 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
     __slots__ = '__dict__', '__pydantic_fields_set__', '__pydantic_extra__', '__pydantic_private__'
     __pydantic_complete__ = False
     __pydantic_root_model__: typing.ClassVar[bool] = False
+    __pydantic_extra__: Dict[str, Any] | None  # noqa: UP006  # makes internal typing stuff crash
 
     def __init__(__pydantic_self__, **data: Any) -> None:  # type: ignore
         """Create a new model by parsing and validating input data from keyword arguments.
